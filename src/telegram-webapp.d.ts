@@ -4,6 +4,7 @@ interface Window {
     WebApp?: {
       initData: string;
       initDataUnsafe: any;
+      platform: string;
       close: () => void;
       // Add other WebApp methods if needed
     };

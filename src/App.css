@@ -188,10 +188,10 @@ body {
     transform: translateY(0px) rotate(0deg);
   }
   33% {
-    transform: translateY(-30px) rotate(120deg);
+    transform: translateY(-20px) rotate(60deg);
   }
   66% {
-    transform: translateY(20px) rotate(240deg);
+    transform: translateY(15px) rotate(120deg);
   }
 }
 
@@ -278,9 +278,9 @@ body {
 }
 
 .theme-toggle:hover {
-  background: rgba(255, 255, 255, 0.2);
-  transform: scale(1.1);
-  box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.15);
+  transform: scale(1.05);
+  box-shadow: var(--shadow-lg);
 }
 
 .theme-icon {
@@ -330,10 +330,12 @@ body {
 
 @keyframes sparkle {
   0%, 100% {
-    transform: rotate(0deg) scale(1);
+    transform: scale(1);
+    opacity: 0.8;
   }
   50% {
-    transform: rotate(180deg) scale(1.1);
+    transform: scale(1.05);
+    opacity: 1;
   }
 }
 
@@ -471,9 +473,9 @@ body {
 .profile-card:hover,
 .wallet-card:hover,
 .message-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
-  border-color: rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-xl);
+  border-color: var(--glass-border);
 }
 
 /* Card Headers */
@@ -719,7 +721,8 @@ body {
 
 .copy-button:hover {
   background: var(--glass-bg);
-  transform: scale(1.1);
+  transform: scale(1.05);
+  box-shadow: var(--shadow-sm);
 }
 
 .copy-button.copied {
@@ -840,6 +843,48 @@ body {
   box-shadow: 0 20px 40px rgba(102, 126, 234, 0.4);
 }
 
+/* Mobile-friendly button styles */
+.mobile-platform .cta-button::before {
+  display: none; /* Disable shimmer effect on mobile */
+}
+
+.mobile-platform .cta-button {
+  background: var(--accent-primary);
+  transition: all 0.2s ease;
+}
+
+.mobile-platform .cta-button:hover {
+  background: var(--accent-primary);
+  transform: none;
+  box-shadow: var(--shadow-lg);
+}
+
+.mobile-platform .cta-button:active {
+  transform: scale(0.98);
+  background: rgba(59, 130, 246, 0.9);
+}
+
+/* Mobile touch optimizations */
+.mobile-platform .copy-button {
+  min-width: 44px;
+  min-height: 44px;
+  padding: var(--space-md);
+}
+
+.mobile-platform .copy-button:active {
+  transform: scale(0.95);
+  background: var(--surface-active);
+}
+
+.mobile-platform .theme-toggle {
+  min-width: 44px;
+  min-height: 44px;
+}
+
+.mobile-platform .theme-toggle:active {
+  transform: scale(0.95);
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
   .container {
@@ -904,4 +949,16 @@ body {
 .cta-button:focus-visible {
   outline: 2px solid var(--accent-primary);
   outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+}
+
+/* Smooth scroll for any internal links */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Improve text selection */
+::selection {
+  background: rgba(59, 130, 246, 0.2);
+  color: var(--text-primary);
 }

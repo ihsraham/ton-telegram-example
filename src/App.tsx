@@ -50,6 +50,27 @@ const getFallbackAvatar = (user: any) => {
   return user.photoUrl || user.photo_url || generateGenericAvatarUrl(name);
 };
 
+// Platform detection helper
+const isMobilePlatform = () => {
+  // Check if Telegram WebApp is available
+  if (typeof window !== "undefined" && window.Telegram?.WebApp) {
+    const webApp = window.Telegram.WebApp as any;
+    const platform = webApp.platform;
+    if (platform) {
+      return platform === "android" || platform === "ios";
+    }
+  }
+
+  // Fallback to user agent detection
+  if (typeof window !== "undefined") {
+    return /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+      navigator.userAgent
+    );
+  }
+
+  return false;
+};
+
 function App() {
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [web3Auth, setWeb3Auth] = useState<Web3Auth | null>(null);
@@ -61,6 +82,7 @@ function App() {
   const [signedMessage, setSignedMessage] = useState<string | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const [copiedStates, setCopiedStates] = useState<{ [key: string]: boolean }>({
     account: false,
     message: false,
@@ -69,6 +91,11 @@ function App() {
   const { initDataRaw, initData } = useLaunchParams() || {};
 
   useTelegramMock();
+
+  // Detect mobile platform
+  useEffect(() => {
+    setIsMobile(isMobilePlatform());
+  }, []);
 
   const toggleDarkMode = () => {
     setIsDarkMode(!isDarkMode);
@@ -83,6 +110,15 @@ function App() {
       document.body.classList.remove("dark-mode");
     }
   }, [isDarkMode]);
+
+  // Add mobile class to body for CSS targeting
+  useEffect(() => {
+    if (isMobile) {
+      document.body.classList.add("mobile-platform");
+    } else {
+      document.body.classList.remove("mobile-platform");
+    }
+  }, [isMobile]);
 
   useEffect(() => {
     const initializeWeb3Auth = async () => {
@@ -246,6 +282,18 @@ function App() {
               Experience the future of Web3 authentication. Seamlessly connect
               your Telegram identity to blockchain wallets with enterprise-grade
               security.
+              {isMobile && (
+                <span
+                  style={{
+                    display: "block",
+                    fontSize: "0.8rem",
+                    color: "var(--accent-success)",
+                    marginTop: "0.5rem",
+                    opacity: 0.7,
+                  }}>
+                  📱 Mobile-optimized UI active
+                </span>
+              )}
             </p>
 
             {isLoggedIn && (
@@ -450,7 +498,7 @@ function App() {
               href="https://web3auth.io/community/t/build-powerful-telegram-mini-apps-with-web3auth/9244"
               target="_blank"
               rel="noopener noreferrer"
-              className="cta-button">
+              className={`cta-button ${isMobile ? "mobile-friendly" : ""}`}>
               <span>Learn More</span>
               <ExternalLink size={16} />
             </a>
