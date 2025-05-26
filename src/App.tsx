@@ -8,7 +8,21 @@ import {
 import TonRPC from "./tonRpc";
 import { useLaunchParams } from "@telegram-apps/sdk-react";
 import { useTelegramMock } from "./hooks/useMockTelegramInitData";
-import { Sun, Moon, Copy, Check } from "lucide-react";
+import {
+  Sun,
+  Moon,
+  Copy,
+  Check,
+  Wallet,
+  Shield,
+  Zap,
+  User,
+  Hash,
+  MessageSquare,
+  ExternalLink,
+  Sparkles,
+  CheckCircle2,
+} from "lucide-react";
 import Loading from "./components/Loading";
 import TelegramLogo from "./assets/TelegramLogo.svg";
 import web3AuthLogoLight from "./assets/web3AuthLogoLight.svg";
@@ -181,122 +195,270 @@ function App() {
   };
 
   return (
-    <div className="container">
-      <div className="header">
-        <div className="logo-container">
-          <img
-            src={isDarkMode ? web3AuthLogoDark : web3AuthLogoLight}
-            alt="Web3Auth Logo"
-            className="web3auth-logo"
-          />
-          <button
-            onClick={toggleDarkMode}
-            className="theme-toggle"
-            aria-label="Toggle dark mode">
-            {isDarkMode ? (
-              <Sun className="text-yellow-500" />
-            ) : (
-              <Moon className="text-gray-700" />
-            )}
-          </button>
-        </div>
-        <div className="title">
-          <h4>Web3Auth Telegram MiniApp</h4>
-        </div>
-
-        <div className="description">
-          <p>
-            Seamless wallet access on any chain with Telegram. Just one click,
-            and you're in!
-          </p>
+    <div className="app-container">
+      {/* Animated Background */}
+      <div className="background-animation">
+        <div className="floating-shapes">
+          <div className="shape shape-1"></div>
+          <div className="shape shape-2"></div>
+          <div className="shape shape-3"></div>
+          <div className="shape shape-4"></div>
         </div>
       </div>
-      {isLoggingIn ? (
-        <Loading />
-      ) : (
-        <div className="grid">
-          {isLoggedIn && (
-            <>
-              <div className="user-info-box">
-                <img
-                  src={getFallbackAvatar(userData)}
-                  alt="User avatar"
-                  className="user-avatar"
-                  onError={(e) => {
-                    const target = e.target as HTMLImageElement;
-                    target.src = generateGenericAvatarUrl(
-                      userData?.firstName || userData?.username || "User"
-                    );
-                  }}
-                />
-                <div className="user-info">
-                  <div className="id-with-logo">
-                    <p>
-                      <strong>ID:</strong> {userData?.id}
-                    </p>
-                    <img
-                      src={TelegramLogo}
-                      alt="Telegram Logo"
-                      className="telegram-logo"
-                    />
-                  </div>
-                  <p>
-                    <strong>Username:</strong> {userData?.username}
-                  </p>
-                  <p>
-                    <strong>Name:</strong> {userData?.firstName}{" "}
-                    {userData?.lastName || ""}
-                  </p>
-                </div>
-              </div>
-              <div
-                className="info-box"
-                onClick={() =>
-                  copyToClipboard(tonAccountAddress || "", "account")
-                }>
-                <div className="info-box-content">
-                  <p>
-                    <strong>TON Account:</strong>
-                    <span className="ellipsed-text">{tonAccountAddress}</span>
-                  </p>
-                  {copiedStates.account ? (
-                    <Check className="copy-icon success" size={18} />
-                  ) : (
-                    <Copy className="copy-icon" size={18} />
-                  )}
-                </div>
-              </div>
-              <div
-                className="info-box"
-                onClick={() => copyToClipboard(signedMessage || "", "message")}>
-                <div className="info-box-content">
-                  <p>
-                    <strong>Signed Message:</strong>
-                    <span className="ellipsed-text">{signedMessage}</span>
-                  </p>
-                  {copiedStates.message ? (
-                    <Check className="copy-icon success" size={18} />
-                  ) : (
-                    <Copy className="copy-icon" size={18} />
-                  )}
-                </div>
-              </div>
-            </>
-          )}
-        </div>
-      )}
 
-      <footer className="footer">
-        <a
-          href="https://web3auth.io/community/t/build-powerful-telegram-mini-apps-with-web3auth/9244"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="learn-more-button">
-          Telegram MiniApp Setup Guide
-        </a>
-      </footer>
+      <div className="container">
+        {/* Hero Header */}
+        <div className="hero-header">
+          <div className="logo-section">
+            <div className="logo-wrapper">
+              <img
+                src={isDarkMode ? web3AuthLogoDark : web3AuthLogoLight}
+                alt="Web3Auth Logo"
+                className="web3auth-logo"
+              />
+              <div className="logo-glow"></div>
+            </div>
+            <button
+              onClick={toggleDarkMode}
+              className="theme-toggle"
+              aria-label="Toggle dark mode">
+              {isDarkMode ? (
+                <Sun className="theme-icon" />
+              ) : (
+                <Moon className="theme-icon" />
+              )}
+            </button>
+          </div>
+
+          <div className="hero-content">
+            <div className="title-section">
+              <h1 className="main-title">
+                <Sparkles className="title-icon" />
+                Web3Auth Telegram MiniApp
+              </h1>
+              <div className="status-badge">
+                <CheckCircle2 size={16} />
+                <span>Powered by TON</span>
+              </div>
+            </div>
+
+            <p className="hero-description">
+              Experience the future of Web3 authentication. Seamlessly connect
+              your Telegram identity to blockchain wallets with enterprise-grade
+              security.
+            </p>
+
+            {isLoggedIn && (
+              <div className="connection-status">
+                <div className="status-indicator">
+                  <div className="pulse-dot"></div>
+                  <span>Connected & Secured</span>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Main Content */}
+        {isLoggingIn ? (
+          <div className="loading-section">
+            <Loading />
+            <p className="loading-text">Establishing secure connection...</p>
+          </div>
+        ) : (
+          <div className="content-grid">
+            {isLoggedIn && (
+              <>
+                {/* User Profile Card */}
+                <div className="profile-card">
+                  <div className="card-header">
+                    <User className="card-icon" />
+                    <h3>Your Identity</h3>
+                    <div className="verified-badge">
+                      <Shield size={14} />
+                      <span>Verified</span>
+                    </div>
+                  </div>
+
+                  <div className="profile-content">
+                    <div className="avatar-section">
+                      <div className="avatar-wrapper">
+                        <img
+                          src={getFallbackAvatar(userData)}
+                          alt="User avatar"
+                          className="user-avatar"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            target.src = generateGenericAvatarUrl(
+                              userData?.firstName ||
+                                userData?.username ||
+                                "User"
+                            );
+                          }}
+                        />
+                        <div className="avatar-ring"></div>
+                        <div className="online-indicator"></div>
+                      </div>
+                    </div>
+
+                    <div className="user-details">
+                      <div className="detail-row">
+                        <Hash className="detail-icon" />
+                        <div className="detail-content">
+                          <span className="detail-label">Telegram ID</span>
+                          <span className="detail-value">{userData?.id}</span>
+                        </div>
+                        <img
+                          src={TelegramLogo}
+                          alt="Telegram"
+                          className="telegram-badge"
+                        />
+                      </div>
+
+                      <div className="detail-row">
+                        <User className="detail-icon" />
+                        <div className="detail-content">
+                          <span className="detail-label">Username</span>
+                          <span className="detail-value">
+                            @{userData?.username}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="detail-row">
+                        <span className="detail-icon">👤</span>
+                        <div className="detail-content">
+                          <span className="detail-label">Full Name</span>
+                          <span className="detail-value">
+                            {userData?.firstName} {userData?.lastName || ""}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Wallet Card */}
+                <div className="wallet-card">
+                  <div className="card-header">
+                    <Wallet className="card-icon" />
+                    <h3>TON Wallet</h3>
+                    <div className="network-badge">
+                      <Zap size={14} />
+                      <span>Mainnet</span>
+                    </div>
+                  </div>
+
+                  <div className="wallet-content">
+                    <div className="address-section">
+                      <div className="address-label">
+                        <span>Wallet Address</span>
+                        <div className="security-indicator">
+                          <Shield size={12} />
+                          <span>Secured</span>
+                        </div>
+                      </div>
+                      <div className="address-display">
+                        <code className="address-text">
+                          {tonAccountAddress}
+                        </code>
+                        <button
+                          className={`copy-button ${
+                            copiedStates.account ? "copied" : ""
+                          }`}
+                          onClick={() =>
+                            copyToClipboard(tonAccountAddress || "", "account")
+                          }>
+                          {copiedStates.account ? (
+                            <Check className="copy-icon success" size={18} />
+                          ) : (
+                            <Copy className="copy-icon" size={18} />
+                          )}
+                        </button>
+                      </div>
+                      {copiedStates.account && (
+                        <div className="copy-feedback">
+                          <Check size={16} />
+                          <span>Address copied to clipboard!</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Message Card */}
+                <div className="message-card">
+                  <div className="card-header">
+                    <MessageSquare className="card-icon" />
+                    <h3>Signed Message</h3>
+                    <div className="signature-badge">
+                      <CheckCircle2 size={14} />
+                      <span>Verified</span>
+                    </div>
+                  </div>
+
+                  <div className="message-content">
+                    <div className="message-section">
+                      <div className="message-label">
+                        <span>Cryptographic Signature</span>
+                        <div className="timestamp">
+                          <span>Just now</span>
+                        </div>
+                      </div>
+                      <div className="message-display">
+                        <code className="message-text">{signedMessage}</code>
+                        <button
+                          className={`copy-button ${
+                            copiedStates.message ? "copied" : ""
+                          }`}
+                          onClick={() =>
+                            copyToClipboard(signedMessage || "", "message")
+                          }>
+                          {copiedStates.message ? (
+                            <Check className="copy-icon success" size={18} />
+                          ) : (
+                            <Copy className="copy-icon" size={18} />
+                          )}
+                        </button>
+                      </div>
+                      {copiedStates.message && (
+                        <div className="copy-feedback">
+                          <Check size={16} />
+                          <span>Signature copied to clipboard!</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+        )}
+
+        {/* Enhanced Footer */}
+        <footer className="app-footer">
+          <div className="footer-content">
+            <div className="footer-info">
+              <p>Built with Web3Auth & TON Blockchain</p>
+              <div className="tech-badges">
+                <span className="tech-badge">🔐 Enterprise Security</span>
+                <span className="tech-badge">⚡ Lightning Fast</span>
+                <span className="tech-badge">🌐 Cross-Platform</span>
+              </div>
+            </div>
+            <a
+              href="https://web3auth.io/community/t/build-powerful-telegram-mini-apps-with-web3auth/9244"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="cta-button">
+              <span>Learn More</span>
+              <ExternalLink size={16} />
+            </a>
+          </div>
+        </footer>
+      </div>
     </div>
-  );  
+  );
 }
 
 export default App;
