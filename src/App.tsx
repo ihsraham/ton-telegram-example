@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Web3Auth, CHAIN_NAMESPACES, WEB3AUTH_NETWORK, CustomChainConfig, WALLET_CONNECTORS } from "@web3auth/modal";
+import { Web3Auth, WEB3AUTH_NETWORK, WALLET_CONNECTORS } from "@web3auth/modal";
 import TonRPC from "./tonRpc";
 import { useLaunchParams } from "@telegram-apps/sdk-react";
 import { useTelegramMock } from "./hooks/useMockTelegramInitData";
