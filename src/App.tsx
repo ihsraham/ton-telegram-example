@@ -79,6 +79,9 @@ function App() {
           await web3Auth.connectTo(WALLET_CONNECTORS.AUTH, {
             authConnectionId,
             idToken,
+            extraLoginOptions: {
+              isUserIdCaseSensitive: true,
+            },
           });
 
           setUserData(idToken);
