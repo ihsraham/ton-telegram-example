@@ -1,5 +1,10 @@
 import { useEffect, useState } from "react";
-import { Web3Auth, WEB3AUTH_NETWORK, WALLET_CONNECTORS, AUTH_CONNECTION } from "@web3auth/modal";
+import {
+  Web3Auth,
+  WEB3AUTH_NETWORK,
+  WALLET_CONNECTORS,
+  AUTH_CONNECTION,
+} from "@web3auth/modal";
 import TonRPC from "./tonRpc";
 import { useLaunchParams } from "@telegram-apps/sdk-react";
 import { useTelegramMock } from "./hooks/useMockTelegramInitData";
@@ -11,14 +16,34 @@ import web3AuthLogoDark from "./assets/web3AuthLogoDark.svg";
 import "./App.css";
 
 const authConnectionId = "w3a-telegram-demo";
-const clientId = "BPi5PB_UiIZ-cPz1GtV5i1I2iOSOHuimiXBI0e-Oe_u6X3oVAbCiAZOTEBtTXw4tsluTITPqA8zMsfxIKMjiqNQ";
+const clientId =
+  "BPi5PB_UiIZ-cPz1GtV5i1I2iOSOHuimiXBI0e-Oe_u6X3oVAbCiAZOTEBtTXw4tsluTITPqA8zMsfxIKMjiqNQ";
+
+const generateGenericAvatarUrl = (name: string) =>
+  `https://ui-avatars.com/api/?name=${encodeURIComponent(
+    name
+  )}&background=random`;
+
+const getFallbackAvatar = (user: any) => {
+  if (!user) return generateGenericAvatarUrl("User");
+
+  const name =
+    `${user.firstName || user.first_name || ""} ${
+      user.lastName || user.last_name || ""
+    }`.trim() ||
+    user.username ||
+    "User";
+  return user.photoUrl || user.photo_url || generateGenericAvatarUrl(name);
+};
 
 function App() {
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [web3Auth, setWeb3Auth] = useState<Web3Auth | null>(null);
   const [web3AuthInitialized, setWeb3AuthInitialized] = useState(false);
   const [userData, setUserData] = useState<any | null>(null);
-  const [tonAccountAddress, setTonAccountAddress] = useState<string | null>(null);
+  const [tonAccountAddress, setTonAccountAddress] = useState<string | null>(
+    null
+  );
   const [signedMessage, setSignedMessage] = useState<string | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
@@ -73,7 +98,10 @@ function App() {
             await web3Auth.logout();
           }
 
-          const idToken = await getIdTokenFromServer(initDataRaw, initData?.user.photoUrl);
+          const idToken = await getIdTokenFromServer(
+            initDataRaw,
+            initData?.user.photoUrl
+          );
           if (!idToken) return;
 
           await web3Auth.connectTo(WALLET_CONNECTORS.AUTH, {
@@ -85,7 +113,6 @@ function App() {
             },
           });
 
-          setUserData(idToken);
           setIsLoggedIn(true);
 
           const tonRpc = new TonRPC(web3Auth.provider);
@@ -108,15 +135,27 @@ function App() {
     }
   }, [initDataRaw, web3Auth, web3AuthInitialized, initData?.user.photoUrl]);
 
-  const getIdTokenFromServer = async (initDataRaw: string, photoUrl: string | undefined) => {
+  useEffect(() => {
+    if (initData?.user) {
+      setUserData(initData.user);
+    }
+  }, [initData]);
+
+  const getIdTokenFromServer = async (
+    initDataRaw: string,
+    photoUrl: string | undefined
+  ) => {
     const isMocked = !!sessionStorage.getItem("____mocked");
-    const response = await fetch(`${import.meta.env.VITE_SERVER_URL}/auth/telegram`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ initDataRaw, isMocked, photoUrl }),
-    });
+    const response = await fetch(
+      `${import.meta.env.VITE_SERVER_URL}/auth/telegram`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ initDataRaw, isMocked, photoUrl }),
+      }
+    );
     const data = await response.json();
     return data.token;
   };
@@ -145,9 +184,20 @@ function App() {
     <div className="container">
       <div className="header">
         <div className="logo-container">
-          <img src={isDarkMode ? web3AuthLogoDark : web3AuthLogoLight} alt="Web3Auth Logo" className="web3auth-logo" />
-          <button onClick={toggleDarkMode} className="theme-toggle" aria-label="Toggle dark mode">
-            {isDarkMode ? <Sun className="text-yellow-500" /> : <Moon className="text-gray-700" />}
+          <img
+            src={isDarkMode ? web3AuthLogoDark : web3AuthLogoLight}
+            alt="Web3Auth Logo"
+            className="web3auth-logo"
+          />
+          <button
+            onClick={toggleDarkMode}
+            className="theme-toggle"
+            aria-label="Toggle dark mode">
+            {isDarkMode ? (
+              <Sun className="text-yellow-500" />
+            ) : (
+              <Moon className="text-gray-700" />
+            )}
           </button>
         </div>
         <div className="title">
@@ -155,7 +205,10 @@ function App() {
         </div>
 
         <div className="description">
-          <p>Seamless wallet access on any chain with Telegram. Just one click, and you're in!</p>
+          <p>
+            Seamless wallet access on any chain with Telegram. Just one click,
+            and you're in!
+          </p>
         </div>
       </div>
       {isLoggingIn ? (
@@ -165,38 +218,67 @@ function App() {
           {isLoggedIn && (
             <>
               <div className="user-info-box">
-                <img src={userData?.avatar_url} alt="User avatar" className="user-avatar" />
+                <img
+                  src={getFallbackAvatar(userData)}
+                  alt="User avatar"
+                  className="user-avatar"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.src = generateGenericAvatarUrl(
+                      userData?.firstName || userData?.username || "User"
+                    );
+                  }}
+                />
                 <div className="user-info">
                   <div className="id-with-logo">
                     <p>
-                      <strong>ID:</strong> {userData?.telegram_id}
+                      <strong>ID:</strong> {userData?.id}
                     </p>
-                    <img src={TelegramLogo} alt="Telegram Logo" className="telegram-logo" />
+                    <img
+                      src={TelegramLogo}
+                      alt="Telegram Logo"
+                      className="telegram-logo"
+                    />
                   </div>
                   <p>
                     <strong>Username:</strong> {userData?.username}
                   </p>
                   <p>
-                    <strong>Name:</strong> {userData?.name}
+                    <strong>Name:</strong> {userData?.firstName}{" "}
+                    {userData?.lastName || ""}
                   </p>
                 </div>
               </div>
-              <div className="info-box" onClick={() => copyToClipboard(tonAccountAddress || "", "account")}>
+              <div
+                className="info-box"
+                onClick={() =>
+                  copyToClipboard(tonAccountAddress || "", "account")
+                }>
                 <div className="info-box-content">
                   <p>
                     <strong>TON Account:</strong>
                     <span className="ellipsed-text">{tonAccountAddress}</span>
                   </p>
-                  {copiedStates.account ? <Check className="copy-icon success" size={18} /> : <Copy className="copy-icon" size={18} />}
+                  {copiedStates.account ? (
+                    <Check className="copy-icon success" size={18} />
+                  ) : (
+                    <Copy className="copy-icon" size={18} />
+                  )}
                 </div>
               </div>
-              <div className="info-box" onClick={() => copyToClipboard(signedMessage || "", "message")}>
+              <div
+                className="info-box"
+                onClick={() => copyToClipboard(signedMessage || "", "message")}>
                 <div className="info-box-content">
                   <p>
                     <strong>Signed Message:</strong>
                     <span className="ellipsed-text">{signedMessage}</span>
                   </p>
-                  {copiedStates.message ? <Check className="copy-icon success" size={18} /> : <Copy className="copy-icon" size={18} />}
+                  {copiedStates.message ? (
+                    <Check className="copy-icon success" size={18} />
+                  ) : (
+                    <Copy className="copy-icon" size={18} />
+                  )}
                 </div>
               </div>
             </>
@@ -209,13 +291,12 @@ function App() {
           href="https://web3auth.io/community/t/build-powerful-telegram-mini-apps-with-web3auth/9244"
           target="_blank"
           rel="noopener noreferrer"
-          className="learn-more-button"
-        >
+          className="learn-more-button">
           Telegram MiniApp Setup Guide
         </a>
       </footer>
     </div>
-  );
+  );  
 }
 
 export default App;
