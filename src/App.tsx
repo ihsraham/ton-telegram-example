@@ -85,7 +85,18 @@ function App() {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [showDebugLogs, setShowDebugLogs] = useState(false);
-  const [debugLogs, setDebugLogs] = useState<string[]>([]);
+  const [debugFilter, setDebugFilter] = useState<
+    "all" | "console" | "network" | "app"
+  >("all");
+  const [debugLogs, setDebugLogs] = useState<
+    Array<{
+      type: "console" | "network" | "app";
+      level: "log" | "warn" | "error" | "info";
+      message: string;
+      timestamp: string;
+      details?: any;
+    }>
+  >([]);
   const [copiedStates, setCopiedStates] = useState<{ [key: string]: boolean }>({
     account: false,
     message: false,
@@ -95,10 +106,130 @@ function App() {
 
   useTelegramMock();
 
+  // Console and Network interceptors
+  useEffect(() => {
+    const originalConsole = {
+      log: console.log,
+      warn: console.warn,
+      error: console.error,
+      info: console.info,
+    };
+
+    // Intercept console methods
+    console.log = (...args) => {
+      originalConsole.log(...args);
+      addDebugLog(
+        args
+          .map((arg) =>
+            typeof arg === "object" ? JSON.stringify(arg, null, 2) : String(arg)
+          )
+          .join(" "),
+        "console",
+        "log"
+      );
+    };
+
+    console.warn = (...args) => {
+      originalConsole.warn(...args);
+      addDebugLog(
+        args
+          .map((arg) =>
+            typeof arg === "object" ? JSON.stringify(arg, null, 2) : String(arg)
+          )
+          .join(" "),
+        "console",
+        "warn"
+      );
+    };
+
+    console.error = (...args) => {
+      originalConsole.error(...args);
+      addDebugLog(
+        args
+          .map((arg) =>
+            typeof arg === "object" ? JSON.stringify(arg, null, 2) : String(arg)
+          )
+          .join(" "),
+        "console",
+        "error"
+      );
+    };
+
+    console.info = (...args) => {
+      originalConsole.info(...args);
+      addDebugLog(
+        args
+          .map((arg) =>
+            typeof arg === "object" ? JSON.stringify(arg, null, 2) : String(arg)
+          )
+          .join(" "),
+        "console",
+        "info"
+      );
+    };
+
+    // Network interceptor
+    const originalFetch = window.fetch;
+    window.fetch = async (...args) => {
+      const [url, options] = args;
+      const startTime = Date.now();
+
+      addDebugLog(`→ ${options?.method || "GET"} ${url}`, "network", "info", {
+        url,
+        options,
+      });
+
+      try {
+        const response = await originalFetch(...args);
+        const duration = Date.now() - startTime;
+        addDebugLog(
+          `← ${response.status} ${url} (${duration}ms)`,
+          "network",
+          response.ok ? "log" : "error",
+          {
+            status: response.status,
+            statusText: response.statusText,
+            duration,
+          }
+        );
+        return response;
+      } catch (error) {
+        const duration = Date.now() - startTime;
+        addDebugLog(`✗ ${url} failed (${duration}ms)`, "network", "error", {
+          error,
+        });
+        throw error;
+      }
+    };
+
+    // Cleanup function
+    return () => {
+      console.log = originalConsole.log;
+      console.warn = originalConsole.warn;
+      console.error = originalConsole.error;
+      console.info = originalConsole.info;
+      window.fetch = originalFetch;
+    };
+  }, []);
+
   // Debug logging function
-  const addDebugLog = (message: string) => {
+  const addDebugLog = (
+    message: string,
+    type: "console" | "network" | "app" = "app",
+    level: "log" | "warn" | "error" | "info" = "log",
+    details?: any
+  ) => {
     const timestamp = new Date().toLocaleTimeString();
-    setDebugLogs((prev) => [`[${timestamp}] ${message}`, ...prev.slice(0, 19)]); // Keep last 20 logs
+    setDebugLogs((prev) => [
+      {
+        type,
+        level,
+        message,
+        timestamp,
+        details,
+      },
+      ...prev.slice(0, 19),
+    ]); // Keep last 20 logs
   };
 
   // Detect mobile platform
@@ -358,22 +489,93 @@ function App() {
           <div className="debug-panel">
             <div className="debug-header">
               <h3>Debug Logs</h3>
-              <button
-                onClick={() => setDebugLogs([])}
-                className="clear-logs-btn">
-                Clear
-              </button>
+              <div className="debug-controls">
+                <div className="debug-filters">
+                  <button
+                    className={`filter-btn ${
+                      debugFilter === "all" ? "active" : ""
+                    }`}
+                    onClick={() => setDebugFilter("all")}>
+                    All ({debugLogs.length})
+                  </button>
+                  <button
+                    className={`filter-btn ${
+                      debugFilter === "console" ? "active" : ""
+                    }`}
+                    onClick={() => setDebugFilter("console")}>
+                    Console (
+                    {debugLogs.filter((log) => log.type === "console").length})
+                  </button>
+                  <button
+                    className={`filter-btn ${
+                      debugFilter === "network" ? "active" : ""
+                    }`}
+                    onClick={() => setDebugFilter("network")}>
+                    Network (
+                    {debugLogs.filter((log) => log.type === "network").length})
+                  </button>
+                  <button
+                    className={`filter-btn ${
+                      debugFilter === "app" ? "active" : ""
+                    }`}
+                    onClick={() => setDebugFilter("app")}>
+                    App ({debugLogs.filter((log) => log.type === "app").length})
+                  </button>
+                </div>
+                <div className="debug-actions">
+                  <button
+                    onClick={() => {
+                      // Generate test logs
+                      console.log("Test console log message");
+                      console.warn("Test warning message");
+                      console.error("Test error message");
+                      fetch("/api/test").catch(() => {}); // This will generate network logs
+                    }}
+                    className="test-logs-btn">
+                    Test
+                  </button>
+                  <button
+                    onClick={() => setDebugLogs([])}
+                    className="clear-logs-btn">
+                    Clear
+                  </button>
+                </div>
+              </div>
             </div>
             <div className="debug-logs">
-              {debugLogs.length === 0 ? (
-                <p className="no-logs">No logs yet...</p>
-              ) : (
-                debugLogs.map((log, index) => (
-                  <div key={index} className="debug-log-item">
-                    {log}
-                  </div>
-                ))
-              )}
+              {(() => {
+                const filteredLogs =
+                  debugFilter === "all"
+                    ? debugLogs
+                    : debugLogs.filter((log) => log.type === debugFilter);
+
+                return filteredLogs.length === 0 ? (
+                  <p className="no-logs">
+                    {debugLogs.length === 0
+                      ? "No logs yet..."
+                      : `No ${debugFilter} logs yet...`}
+                  </p>
+                ) : (
+                  filteredLogs.map((log, index) => (
+                    <div
+                      key={index}
+                      className={`debug-log-item ${log.type} ${log.level}`}>
+                      <div className="log-header">
+                        <span className="log-type">{log.type}</span>
+                        <span className="log-level">{log.level}</span>
+                        <span className="log-timestamp">{log.timestamp}</span>
+                      </div>
+                      <div className="log-message">{log.message}</div>
+                      {log.details && (
+                        <details className="log-details">
+                          <summary>Details</summary>
+                          <pre>{JSON.stringify(log.details, null, 2)}</pre>
+                        </details>
+                      )}
+                    </div>
+                  ))
+                );
+              })()}
             </div>
           </div>
         )}
