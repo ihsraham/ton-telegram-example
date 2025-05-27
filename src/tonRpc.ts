@@ -2,7 +2,7 @@ import type { IProvider } from "@web3auth/modal";
 import { getHttpEndpoint } from "@orbs-network/ton-access";
 import TonWeb from "tonweb";
 
-const rpc = await getHttpEndpoint(); 
+const rpc = await getHttpEndpoint({ network: 'mainnet' }); 
 
 export default class TonRPC {
     private provider: IProvider;
@@ -30,7 +30,7 @@ export default class TonRPC {
     }
 
     getChainId(): string {
-        return "testnet"; 
+        return "mainnet"; 
     }
 
     async getBalance(): Promise<string> {

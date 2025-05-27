@@ -22,6 +22,7 @@ import {
   ExternalLink,
   Sparkles,
   CheckCircle2,
+  Bug,
 } from "lucide-react";
 import Loading from "./components/Loading";
 import TelegramLogo from "./assets/TelegramLogo.svg";
@@ -83,6 +84,8 @@ function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [showDebugLogs, setShowDebugLogs] = useState(false);
+  const [debugLogs, setDebugLogs] = useState<string[]>([]);
   const [copiedStates, setCopiedStates] = useState<{ [key: string]: boolean }>({
     account: false,
     message: false,
@@ -92,9 +95,27 @@ function App() {
 
   useTelegramMock();
 
+  // Debug logging function
+  const addDebugLog = (message: string) => {
+    const timestamp = new Date().toLocaleTimeString();
+    setDebugLogs((prev) => [`[${timestamp}] ${message}`, ...prev.slice(0, 19)]); // Keep last 20 logs
+  };
+
   // Detect mobile platform
   useEffect(() => {
-    setIsMobile(isMobilePlatform());
+    const mobile = isMobilePlatform();
+    setIsMobile(mobile);
+
+    // Add debug logs
+    addDebugLog(`Platform detection: ${mobile ? "Mobile" : "Desktop"}`);
+    addDebugLog(
+      `Telegram platform: ${
+        window.Telegram?.WebApp
+          ? (window.Telegram.WebApp as any).platform || "unknown"
+          : "not available"
+      }`
+    );
+    addDebugLog(`User agent: ${navigator.userAgent.substring(0, 50)}...`);
   }, []);
 
   const toggleDarkMode = () => {
@@ -146,14 +167,20 @@ function App() {
         try {
           if (web3Auth.status === "connected") {
             await web3Auth.logout();
+            addDebugLog("Logged out from previous session");
           }
 
+          addDebugLog("Getting ID token from server...");
           const idToken = await getIdTokenFromServer(
             initDataRaw,
             initData?.user.photoUrl
           );
-          if (!idToken) return;
+          if (!idToken) {
+            addDebugLog("Failed to get ID token");
+            return;
+          }
 
+          addDebugLog("Connecting to Web3Auth...");
           await web3Auth.connectTo(WALLET_CONNECTORS.AUTH, {
             authConnectionId,
             authConnection: AUTH_CONNECTION.CUSTOM,
@@ -164,16 +191,24 @@ function App() {
           });
 
           setIsLoggedIn(true);
+          addDebugLog("Web3Auth connection successful");
 
           const tonRpc = new TonRPC(web3Auth.provider);
+          addDebugLog("Getting TON wallet address...");
           const tonAddress = await tonRpc.getAccounts();
           setTonAccountAddress(tonAddress);
+          addDebugLog(`TON address: ${tonAddress.substring(0, 20)}...`);
 
+          addDebugLog("Signing test message...");
           const messageToSign = "Hello, TON!";
           const signedMsg = await tonRpc.signMessage(messageToSign);
           setSignedMessage(signedMsg);
+          addDebugLog("Message signed successfully");
         } catch (error) {
           console.error("Error during Web3Auth connection:", error);
+          addDebugLog(
+            `Error: ${error instanceof Error ? error.message : String(error)}`
+          );
         } finally {
           setIsLoggingIn(false);
         }
@@ -254,16 +289,27 @@ function App() {
               />
               <div className="logo-glow"></div>
             </div>
-            <button
-              onClick={toggleDarkMode}
-              className="theme-toggle"
-              aria-label="Toggle dark mode">
-              {isDarkMode ? (
-                <Sun className="theme-icon" />
-              ) : (
-                <Moon className="theme-icon" />
-              )}
-            </button>
+            <div className="header-controls">
+              <button
+                onClick={() => setShowDebugLogs(!showDebugLogs)}
+                className="debug-toggle"
+                aria-label="Toggle debug logs">
+                <Bug className="debug-icon" />
+                {debugLogs.length > 0 && (
+                  <span className="debug-count">{debugLogs.length}</span>
+                )}
+              </button>
+              <button
+                onClick={toggleDarkMode}
+                className="theme-toggle"
+                aria-label="Toggle dark mode">
+                {isDarkMode ? (
+                  <Sun className="theme-icon" />
+                ) : (
+                  <Moon className="theme-icon" />
+                )}
+              </button>
+            </div>
           </div>
 
           <div className="hero-content">
@@ -306,6 +352,31 @@ function App() {
             )}
           </div>
         </div>
+
+        {/* Debug Logs Panel */}
+        {showDebugLogs && (
+          <div className="debug-panel">
+            <div className="debug-header">
+              <h3>Debug Logs</h3>
+              <button
+                onClick={() => setDebugLogs([])}
+                className="clear-logs-btn">
+                Clear
+              </button>
+            </div>
+            <div className="debug-logs">
+              {debugLogs.length === 0 ? (
+                <p className="no-logs">No logs yet...</p>
+              ) : (
+                debugLogs.map((log, index) => (
+                  <div key={index} className="debug-log-item">
+                    {log}
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Main Content */}
         {isLoggingIn ? (
