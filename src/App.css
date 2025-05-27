@@ -468,10 +468,7 @@ a,
   align-items: flex-end;
 }
 
-.debug-actions {
-  display: flex;
-  gap: var(--space-sm);
-}
+
 
 .debug-filters {
   display: flex;
@@ -517,9 +514,9 @@ a,
   font-size: 1.2rem;
 }
 
-.test-logs-btn,
 .clear-logs-btn {
   padding: var(--space-sm) var(--space-md);
+  background: var(--accent-error);
   color: white;
   border: none;
   border-radius: var(--radius-md);
@@ -527,19 +524,6 @@ a,
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.test-logs-btn {
-  background: var(--accent-info);
-}
-
-.test-logs-btn:hover {
-  background: #0891b2;
-  transform: scale(1.05);
-}
-
-.clear-logs-btn {
-  background: var(--accent-error);
 }
 
 .clear-logs-btn:hover {

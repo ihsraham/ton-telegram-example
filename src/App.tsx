@@ -522,24 +522,11 @@ function App() {
                     App ({debugLogs.filter((log) => log.type === "app").length})
                   </button>
                 </div>
-                <div className="debug-actions">
-                  <button
-                    onClick={() => {
-                      // Generate test logs
-                      console.log("Test console log message");
-                      console.warn("Test warning message");
-                      console.error("Test error message");
-                      fetch("/api/test").catch(() => {}); // This will generate network logs
-                    }}
-                    className="test-logs-btn">
-                    Test
-                  </button>
-                  <button
-                    onClick={() => setDebugLogs([])}
-                    className="clear-logs-btn">
-                    Clear
-                  </button>
-                </div>
+                <button
+                  onClick={() => setDebugLogs([])}
+                  className="clear-logs-btn">
+                  Clear
+                </button>
               </div>
             </div>
             <div className="debug-logs">
